@@ -1,3 +1,5 @@
+Full Model (with Drag, Initial Val Prob) Using Euler Method
+
 from math import sin, cos, log, ceil
 import numpy
 import matplotlib.pyplot as plt
@@ -87,6 +89,8 @@ plt.ylabel(r'y', fontsize=18)
 plt.title('Glider trajectory, flight time = %.2f' % T, fontsize=18)
 plt.plot(x,y, 'k-', lw=2);
 
+
+Grid Convergence
 dt_values = numpy.array([0.1, 0.05, 0.01, 0.005, 0.001])
 
 u_values = numpy.empty_like(dt_values, dtype=numpy.ndarray)
@@ -155,6 +159,8 @@ plt.ylabel('$L_1$-norm of the grid differences', fontsize=18)
 plt.axis('equal')
 plt.loglog(dt_values[:-1], diffgrid[:-1], color='k', ls='-', lw=2, marker='o');
 
+
+Order of Convergence
 r = 2
 h = 0.001
 
