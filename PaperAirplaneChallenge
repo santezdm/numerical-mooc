@@ -83,11 +83,13 @@ t = numpy.linspace(0.0, T, N)      # time discretization
 # while loop terminates when paper airplane hits the ground
 # (if it does in time T!!)
 
+u_longest_dist = numpy.empty(4)
+
 for ii in range(size(velocities)):
     for jj in range(size(thetas)):
         vel_temp = velocities[ii]
         theta_temp = thetas[jj]
-        u[0] = numpy.array([velocities[ii], thetas[jj], x0, y0])
+        u[0] = numpy.array([vel_temp, theta_temp, x0, y0])
         while y > 0:
             for n in range(N-1):
                 u[n+1] = euler_step(u[n],f,dt)
