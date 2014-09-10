@@ -71,3 +71,26 @@ def euler_step(u, f, dt):
     
     return u + dt * f(u)
 
+# initialize the array containing the solution for each time-step
+u = numpy.empty((N, 4))
+
+T = 100.0                          # final time
+dt = 0.1                           # time increment
+N = int(T/dt) + 1                  # number of time-steps
+t = numpy.linspace(0.0, T, N)      # time discretization
+
+# nested for loops to test each combination of angle and velocity
+# while loop terminates when paper airplane hits the ground
+# (if it does in time T!!)
+
+for ii in range(size(velocities)):
+    for jj in range(size(thetas)):
+        vel_temp = velocities[ii]
+        theta_temp = thetas[jj]
+        u[0] = numpy.array([velocities[ii], thetas[jj], x0, y0])
+        while y > 0:
+            for n in range(N-1):
+                u[n+1] = euler_step(u[n],f,dt)
+                y = u[n,3]
+        if u[-1,2] > u_longest_dist[-1,2]:
+            u_longest_dist = u
