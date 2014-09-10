@@ -84,6 +84,7 @@ t = numpy.linspace(0.0, T, N)      # time discretization
 # (if it does in time T!!)
 
 u_longest_dist = numpy.empty(4)
+y = 1
 
 for ii in range(size(velocities)):
     for jj in range(size(thetas)):
@@ -96,3 +97,4 @@ for ii in range(size(velocities)):
                 y = u[n,3]
         if u[-1,2] > u_longest_dist[-1,2]:
             u_longest_dist = u
+            
