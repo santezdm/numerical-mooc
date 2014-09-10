@@ -1,0 +1,25 @@
+from math import sin, cos, log, ceil
+import numpy
+import matplotlib.pyplot as plt
+%matplotlib inline
+from matplotlib import rcParams
+
+# model parameters:
+g = 9.8      # gravity in m s^{-2}
+v_t = 4.9   # trim velocity in m s^{-1}   
+C_D = 1.  # drag coefficient --- or D/L if C_L=1
+C_L = 5.    # for convenience, use C_L = 1
+
+### set initial conditions ###
+x0 = 0.0     # horizotal position is arbitrary
+y0 = 1.7     # initial altitude --> height of person throwing airplane (m)
+
+### what we want to find
+# best combination of launch velocity and laucnh angle to give greatest
+# distance. To do so, we'll create two arrays, one of launch angles from 0-90
+# degrees, the other, velocities in the range of normal human throwing
+# velocities. From there, we'll calculate the trajectory using the phugoid
+# model for every combination of velocities and angles to determine the best
+# combination. What we'll need: two nested for loops, one for the angles, the
+# other for velocities, and a "keeper" array to carry the best combination
+# across iterations.
