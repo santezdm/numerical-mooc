@@ -23,3 +23,51 @@ y0 = 1.7     # initial altitude --> height of person throwing airplane (m)
 # combination. What we'll need: two nested for loops, one for the angles, the
 # other for velocities, and a "keeper" array to carry the best combination
 # across iterations.
+
+### create angle and velocity arrays
+thetas = numpy.arange(-1.57,1.58,0.01)    # initial angles in radians
+velocities = numpy.arange(0.1,10.1,0.1)   # initial velocities in m/s
+
+def f(u):
+    """Returns the right-hand side of the phugoid system of equations.
+    
+    Parameters
+    ----------
+    u : array of float
+        array containing the solution at time n.
+        
+    Returns
+    -------
+    dudt : array of float
+        array containing the RHS given u.
+    """
+    
+    v = u[0]
+    theta = u[1]
+    x = u[2]
+    y = u[3]
+    return numpy.array([-g*sin(theta) - C_D/C_L*g/v_t**2*v**2,
+                      -g*cos(theta)/v + g/v_t**2*v,
+                      v*cos(theta),
+                      v*sin(theta)])
+
+def euler_step(u, f, dt):
+    """Returns the solution at the next time-step using Euler's method.
+    
+    Parameters
+    ----------
+    u : array of float
+        solution at the previous time-step.
+    f : function
+        function to compute the right hand-side of the system of equation.
+    dt : float
+        time-increment.
+    
+    Returns
+    -------
+    u_n_plus_1 : array of float
+        approximate solution at the next time step.
+    """
+    
+    return u + dt * f(u)
+
