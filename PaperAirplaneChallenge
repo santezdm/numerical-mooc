@@ -75,7 +75,7 @@ def euler_step(u, f, dt):
 u = numpy.empty((N, 4))
 
 T = 100.0                          # final time (s)
-dt = 0.1                          # time increment (s)
+dt = 0.05                          # time increment (s)
 N = int(T/dt) + 1                  # number of time-steps
 t = numpy.linspace(0.0, T, N)      # time discretization
 
@@ -114,9 +114,7 @@ for ii in range(size(velocities)):
             x[m] = u_temp[m,2]
             y[m] = u_temp[m,3]
             
-        if x[-1] > x_longest:
-            x_longest_array = numpy.empty_like(x)
-            y_longest_array = numpy.empty_like(x)
+        if x[-1] > x_longest and x[-1] < 20:
             x_longest_array = numpy.copy(x)
             y_longest_array = numpy.copy(y)
             theta_longest = thetas[jj]
