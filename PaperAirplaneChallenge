@@ -75,7 +75,7 @@ def euler_step(u, f, dt):
 u = numpy.empty((N, 4))
 
 T = 100.0                          # final time (s)
-dt = 0.1                           # time increment (s)
+dt = 0.05                          # time increment (s)
 N = int(T/dt) + 1                  # number of time-steps
 t = numpy.linspace(0.0, T, N)      # time discretization
 
@@ -84,8 +84,13 @@ t = numpy.linspace(0.0, T, N)      # time discretization
 # (if it does in time T!!)
 
 u = numpy.empty((N,4))
-u_longest_dist = numpy.empty((N,4))
-y = 1
+alt = 1
+count = 0
+first_zero_index = 0
+x_longest = 0.
+y_longest = 0.
+theta_longest = 0.
+velocity_longest = 0.
 
 for ii in range(size(velocities)):
     for jj in range(size(thetas)):
@@ -95,8 +100,28 @@ for ii in range(size(velocities)):
         for n in range(N-1):
             if y > 0:
                 u[n+1] = euler_step(u[n],f,dt)
-                y = u[n,3]
+                alt = u[n,3]
             else:
                 u[n+1] = numpy.empty(4)
-        if u[-1,2] > u_longest_dist[-1,2]:
-            u_longest_dist = u
+        if count == 0 and alt <= 0.001:
+            count = 1
+            first_zero_index = n
+        elif count == 1 and n > first_zero_index:
+            count = 2
+            u_temp = numpy.copy(u)
+            x = numpy.empty(first_zero_index-1)
+            y = numpy.empty(first_zero_index-1)
+            for m in range(first_zero_index-1):
+                x[m] = u_temp[m,2]
+                y[m] = u_temp[m,3]
+        x_longest_array = numpy.empty_like(x)
+        y_longest_array = numpy.empty_like(x)
+        if x[-1] > x_longest:
+            x_longest_array = x
+            y_longest_array = y
+            theta_longest = thetas[jj]
+            velocity_longest = velocities[ii]
+            x_longest = x[-1]
+                
+        #if u[-1,2] > u_longest_dist[-1,2]:
+            #u_longest_dist = u
