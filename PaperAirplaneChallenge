@@ -75,7 +75,7 @@ def euler_step(u, f, dt):
 u = numpy.empty((N, 4))
 
 T = 100.0                          # final time (s)
-dt = 0.05                          # time increment (s)
+dt = 0.1                          # time increment (s)
 N = int(T/dt) + 1                  # number of time-steps
 t = numpy.linspace(0.0, T, N)      # time discretization
 
@@ -83,45 +83,50 @@ t = numpy.linspace(0.0, T, N)      # time discretization
 # while loop terminates when paper airplane hits the ground
 # (if it does in time T!!)
 
-u = numpy.empty((N,4))
-alt = 1
-count = 0
 first_zero_index = 0
 x_longest = 0.
-y_longest = 0.
-theta_longest = 0.
-velocity_longest = 0.
 
 for ii in range(size(velocities)):
     for jj in range(size(thetas)):
+        count = 0
+        alt = 1
         vel_temp = velocities[ii]
         theta_temp = thetas[jj]
+        u = numpy.empty((N,4))
         u[0] = numpy.array([vel_temp, theta_temp, x0, y0])
         for n in range(N-1):
-            if y > 0:
+            if alt > 0:
                 u[n+1] = euler_step(u[n],f,dt)
                 alt = u[n,3]
             else:
                 u[n+1] = numpy.empty(4)
-        if count == 0 and alt <= 0.001:
-            count = 1
-            first_zero_index = n
-        elif count == 1 and n > first_zero_index:
-            count = 2
-            u_temp = numpy.copy(u)
-            x = numpy.empty(first_zero_index-1)
-            y = numpy.empty(first_zero_index-1)
-            for m in range(first_zero_index-1):
-                x[m] = u_temp[m,2]
-                y[m] = u_temp[m,3]
-        x_longest_array = numpy.empty_like(x)
-        y_longest_array = numpy.empty_like(x)
+        
+            #for p in range(N-1):
+            if count == 0 and alt <= 0.001:
+                count = 1
+                first_zero_index = n
+        
+        x = numpy.empty(first_zero_index)        
+        y = numpy.empty(first_zero_index)
+        u_temp = numpy.copy(u)
+                
+        for m in range(first_zero_index):
+            x[m] = u_temp[m,2]
+            y[m] = u_temp[m,3]
+            
         if x[-1] > x_longest:
-            x_longest_array = x
-            y_longest_array = y
+            x_longest_array = numpy.empty_like(x)
+            y_longest_array = numpy.empty_like(x)
+            x_longest_array = numpy.copy(x)
+            y_longest_array = numpy.copy(y)
             theta_longest = thetas[jj]
             velocity_longest = velocities[ii]
             x_longest = x[-1]
-                
-        #if u[-1,2] > u_longest_dist[-1,2]:
-            #u_longest_dist = u
+
+# visualization of the path
+plt.figure(figsize=(8,6))
+plt.grid(True)
+plt.xlabel(r'x', fontsize=18)
+plt.ylabel(r'y', fontsize=18)
+plt.title('Glider trajectory, flight time = %.2f' % T, fontsize=18)
+plt.plot(x_longest_array,y_longest_array, 'k-', lw=2);
