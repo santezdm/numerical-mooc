@@ -7,8 +7,8 @@ from matplotlib import rcParams
 # model parameters:
 g = 9.8      # gravity in m s^{-2}
 v_t = 4.9   # trim velocity in m s^{-1}   
-C_D = 1.  # drag coefficient --- or D/L if C_L=1
-C_L = 5.    # for convenience, use C_L = 1
+C_D = 1/5.  # drag coefficient --- or D/L if C_L=1
+C_L = 1.0    # for convenience, use C_L = 1
 
 ### set initial conditions ###
 x0 = 0.0     # horizotal position is arbitrary
@@ -25,8 +25,8 @@ y0 = 1.7     # initial altitude --> height of person throwing airplane (m)
 # across iterations.
 
 ### create angle and velocity arrays
-thetas = numpy.arange(-1.57,1.58,0.01)    # initial angles in radians
-velocities = numpy.arange(0.1,10.1,0.1)   # initial velocities in m/s
+thetas = numpy.arange(-1.5,1.6,0.1)    # initial angles in radians
+velocities = numpy.arange(0.1,9.1,0.1)   # initial velocities in m/s
 
 def f(u):
     """Returns the right-hand side of the phugoid system of equations.
@@ -79,15 +79,18 @@ dt = 0.05                          # time increment (s)
 N = int(T/dt) + 1                  # number of time-steps
 t = numpy.linspace(0.0, T, N)      # time discretization
 
+# initializing variables for use in loops....
+first_zero_index = 0
+x_longest = 0.
+
 # nested for loops to test each combination of angle and velocity
 # while loop terminates when paper airplane hits the ground
 # (if it does in time T!!)
 
-first_zero_index = 0
-x_longest = 0.
-
 for ii in range(size(velocities)):
     for jj in range(size(thetas)):
+        
+        # calculating the motion of the glider using Euler method (w/ Drag)
         count = 0
         alt = 1
         vel_temp = velocities[ii]
@@ -100,20 +103,24 @@ for ii in range(size(velocities)):
                 alt = u[n,3]
             else:
                 u[n+1] = numpy.empty(4)
-        
-            #for p in range(N-1):
+                
+            # finding when the glider hits the ground
             if count == 0 and alt <= 0.001:
                 count = 1
                 first_zero_index = n
-        
+                
+        # initializing position vectors
         x = numpy.empty(first_zero_index)        
         y = numpy.empty(first_zero_index)
         u_temp = numpy.copy(u)
-                
+        
+        # using only the data when the glider is above y = 0 m
         for m in range(first_zero_index):
             x[m] = u_temp[m,2]
             y[m] = u_temp[m,3]
             
+        # determining if the flight in this iteration is the longest flight
+        # of all tests. If it is, it saved to be compared in the next iteration
         if x[-1] > x_longest and x[-1] < 20:
             x_longest_array = numpy.copy(x)
             y_longest_array = numpy.copy(y)
