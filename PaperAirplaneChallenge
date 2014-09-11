@@ -3,6 +3,8 @@ import numpy
 import matplotlib.pyplot as plt
 %matplotlib inline
 from matplotlib import rcParams
+rcParams['font.family'] = 'serif'
+rcParams['font.size'] = 16
 
 # model parameters:
 g = 9.8      # gravity in m s^{-2}
@@ -71,9 +73,6 @@ def euler_step(u, f, dt):
     
     return u + dt * f(u)
 
-# initialize the array containing the solution for each time-step
-u = numpy.empty((N, 4))
-
 T = 100.0                          # final time (s)
 dt = 0.05                          # time increment (s)
 N = int(T/dt) + 1                  # number of time-steps
@@ -131,11 +130,123 @@ for ii in range(size(velocities)):
 # visualization of the path
 plt.figure(figsize=(8,6))
 plt.grid(True)
-plt.xlabel(r'x', fontsize=18)
-plt.ylabel(r'y', fontsize=18)
-plt.title('Glider trajectory, flight time = %.2f' % T, fontsize=18)
+plt.xlabel(r'Farthest Distance Traveled (m)', fontsize=18)
+plt.ylabel(r'Height of Glider (m)', fontsize=18)
+plt.title('Glider trajectory', fontsize=18)
 plt.plot(x_longest_array,y_longest_array, 'k-', lw=2);
 
-print(round(theta_longest,2))
-print(round(velocity_longest,2))
-print(x_longest)
+print('The launch angle associated with greatest distance traveled is theta_0 = {:.2f} rad'.format(theta_longest));
+print('The launch velocity associated with greatest distance traveled is v_0 = {:.1f} m/s'.format(velocity_longest));
+print('The furthest distance traveled with trim velocity {:.1f} m/s is {:.2f} m'.format(v_t,x_longest));
+
+#Grid Convergence
+
+dt_values = numpy.array([0.1, 0.05, 0.01, 0.005, 0.001])
+
+u_values = numpy.empty_like(dt_values, dtype=numpy.ndarray)
+
+for i, dt in enumerate(dt_values):
+    
+    N = int(T/dt) + 1    # number of time-steps
+    
+    ### discretize the time t ###
+    t = numpy.linspace(0.0, T, N)
+    
+    # initialize the array containing the solution for each time-step
+    u = numpy.empty((N, 4))
+    u[0] = numpy.array([velocity_longest, theta_longest, x0, y0])
+
+    # time loop
+    for n in range(N-1):
+       
+        u[n+1] = euler_step(u[n], f, dt)   ### call euler_step() ###
+    
+    # store the value of u related to one grid
+    u_values[i] = u
+
+def get_diffgrid(u_current, u_fine, dt):
+    """Returns the difference between one grid and the fine one using L-1 norm.
+    
+    Parameters
+    ----------
+    u_current : array of float
+        solution on the current grid.
+    u_finest : array of float
+        solution on the fine grid.
+    dt : float
+        time-increment on the current grid.
+    
+    Returns
+    -------
+    diffgrid : float
+        difference computed in the L-1 norm.
+    """
+    
+    N_current = len(u_current[:,0])
+    N_fine = len(u_fine[:,0])
+   
+    grid_size_ratio = ceil(N_fine/float(N_current))
+    
+    diffgrid = dt * numpy.sum( numpy.abs(\
+            u_current[:,2]- u_fine[::grid_size_ratio,2])) 
+    
+    return diffgrid
+
+# compute difference between one grid solution and the finest one
+diffgrid = numpy.empty_like(dt_values)
+
+for i, dt in enumerate(dt_values):
+    print('dt = {}'.format(dt))
+
+    ### call the function get_diffgrid() ###
+    diffgrid[i] = get_diffgrid(u_values[i], u_values[-1], dt)
+
+# log-log plot of the grid differences
+plt.figure(figsize=(6,6))
+plt.grid(True)
+plt.xlabel('$\Delta t$', fontsize=18)
+plt.ylabel('$L_1$-norm of the grid differences', fontsize=18)
+plt.axis('equal')
+plt.loglog(dt_values[:-1], diffgrid[:-1], color='k', ls='-', lw=2, marker='o');
+
+#Order of Convergence
+
+r = 2
+h = 0.001
+
+dt_values2 = numpy.array([h, r*h, r**2*h])
+
+u_values2 = numpy.empty_like(dt_values2, dtype=numpy.ndarray)
+
+diffgrid2 = numpy.empty(2)
+
+for i, dt in enumerate(dt_values2):
+    
+    N = int(T/dt)    # number of time-steps
+    
+    ### discretize the time t ###
+    t = numpy.linspace(0.0, T, N)
+    
+    # initialize the array containing the solution for each time-step
+    u = numpy.empty((N, 4))
+    u[0] = numpy.array([velocity_longest, theta_longest, x0, y0])
+
+    # time loop
+    for n in range(N-1):
+
+        u[n+1] = euler_step(u[n], f, dt)         ### call euler_step() ###
+    
+    # store the value of u related to one grid
+    u_values2[i] = u
+    
+
+#calculate f2 - f1
+diffgrid2[0] = get_diffgrid(u_values2[1], u_values2[0], dt_values2[1])
+
+#calculate f3 - f2
+diffgrid2[1] = get_diffgrid(u_values2[2], u_values2[1], dt_values2[2])
+
+# calculate the order of convergence
+p = (log(diffgrid2[1]) - log(diffgrid2[0])) / log(r)
+
+print('The order of convergence is p = {:.3f}'.format(p));
