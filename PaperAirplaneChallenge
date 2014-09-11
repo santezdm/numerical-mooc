@@ -74,8 +74,8 @@ def euler_step(u, f, dt):
 # initialize the array containing the solution for each time-step
 u = numpy.empty((N, 4))
 
-T = 100.0                          # final time
-dt = 0.1                           # time increment
+T = 100.0                          # final time (s)
+dt = 0.1                           # time increment (s)
 N = int(T/dt) + 1                  # number of time-steps
 t = numpy.linspace(0.0, T, N)      # time discretization
 
@@ -83,7 +83,8 @@ t = numpy.linspace(0.0, T, N)      # time discretization
 # while loop terminates when paper airplane hits the ground
 # (if it does in time T!!)
 
-u_longest_dist = numpy.empty(4)
+u = numpy.empty((N,4))
+u_longest_dist = numpy.empty((N,4))
 y = 1
 
 for ii in range(size(velocities)):
@@ -91,10 +92,11 @@ for ii in range(size(velocities)):
         vel_temp = velocities[ii]
         theta_temp = thetas[jj]
         u[0] = numpy.array([vel_temp, theta_temp, x0, y0])
-        while y > 0:
-            for n in range(N-1):
+        for n in range(N-1):
+            if y > 0:
                 u[n+1] = euler_step(u[n],f,dt)
                 y = u[n,3]
+            else:
+                u[n+1] = numpy.empty(4)
         if u[-1,2] > u_longest_dist[-1,2]:
             u_longest_dist = u
-            
