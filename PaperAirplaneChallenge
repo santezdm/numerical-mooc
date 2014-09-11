@@ -135,3 +135,7 @@ plt.xlabel(r'x', fontsize=18)
 plt.ylabel(r'y', fontsize=18)
 plt.title('Glider trajectory, flight time = %.2f' % T, fontsize=18)
 plt.plot(x_longest_array,y_longest_array, 'k-', lw=2);
+
+print(round(theta_longest,2))
+print(round(velocity_longest,2))
+print(x_longest)
