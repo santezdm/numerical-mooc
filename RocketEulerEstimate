@@ -17,8 +17,8 @@ A = pi*r**2  # maximum cross sectional area of rocket in m^{2}
 
 ### set initial conditions (t = 0 s) ###
 m_p0 = 100.0 # mass of propellant in kg
-h_0 = 0.1    # height in m
-v_0 = 0.1    # velocity in m s{-1}
+h_0 = 0.0    # height in m
+v_0 = 0.0    # velocity in m s{-1}
 
 def f(u,t):
     """Returns the right-hand side of the phugoid system of equations.
@@ -33,9 +33,9 @@ def f(u,t):
     dudt : array of float
         array containing the RHS given u.
     """
-    if t > 5:
+    if t >= 5:
         m_pDot = 0.0
-    elif t < 5 or t == 5:
+    elif t < 5:
         m_pDot = 20.0
     
     m_p = m_p0 - m_pDot*t
@@ -77,13 +77,17 @@ u[0] = numpy.array([h_0,v_0])# fill 1st element with initial values
 for n in range(N-1):
     
     u[n+1] = euler_step(u[n], f, dt, t[n])
-    
-    if u[n,0] < 0:
+
+count = 0
+for n in range(N-1):
+    if count == 0 and u[n,0] < 0:
+        zero_index = n
         break
 
 # get the rocket's position and velocity with respect to time
-h = u[:,0]
-v = u[:,1]
+h = u[0:zero_index,0]
+v = u[0:zero_index,1]
+t_true = copy(t)[0:zero_index]
 
 # visualization of the path
 plt.figure(figsize=(8,6))
@@ -91,7 +95,7 @@ plt.grid(True)
 plt.xlabel(r't', fontsize=18)
 plt.ylabel(r'h', fontsize=18)
 plt.title('Height of Rocket Over Time', fontsize=18)
-plt.plot(t,h, 'k-', lw=2);
+plt.plot(t_true,h, 'k-', lw=2);
 
 # visualization of the velocity
 plt.figure(figsize=(8,6))
@@ -99,4 +103,26 @@ plt.grid(True)
 plt.xlabel(r't', fontsize=18)
 plt.ylabel(r'v', fontsize=18)
 plt.title('Velocity of Rocket Over Time', fontsize=18)
-plt.plot(t,v, 'k-', lw=2);
+plt.plot(t_true,v, 'k-', lw=2);
+
+maxv = max(v)
+maxh = max(h)
+for j,k in enumerate(v):
+    if k == maxv:
+        maxv_index = j
+height_at_maxv = h[maxv_index]
+t_maxv = t_true[maxv_index]
+for j,k in enumerate(h):
+    if k == maxh:
+        maxh_index = j
+t_maxh = t_true[maxh_index]
+timeofImpact = t_true[-1]
+v_at_Impact = v[-1]
+
+print('Max velocity = {:.2f}'.format(maxv))
+print('Height at max velocity = {:.2f}'.format(height_at_maxv))
+print('Time of max velocity = {:.2f}'.format(t_maxv))
+print('Max height = {:.2f}'.format(maxh))
+print('Time of max height = {:.2f}'.format(t_maxh))
+print('Time of impact = {:.2f}'.format(timeofImpact))
+print('Velocity at impact = {:.2f}'.format(v_at_Impact))
