@@ -21,7 +21,7 @@ h_0 = 0.0    # height in m
 v_0 = 0.0    # velocity in m s{-1}
 
 def f(u,t):
-    """Returns the right-hand side of the phugoid system of equations.
+    """Returns the right-hand side of the system of equations with nonzero propellant.
     
     Parameters
     ----------
@@ -33,19 +33,57 @@ def f(u,t):
     dudt : array of float
         array containing the RHS given u.
     """
-    if t >= 5.0:
-        m_pDot = 0.0
-    elif t < 5.0:
-        m_pDot = 20.0
     
+    m_pDot = 20.0
     m_p = m_p0 - m_pDot*t
     
     h = u[0]
     v = u[1]
     return numpy.array([v, (-(m_s+m_p)*g+m_pDot*v_e-0.5*rho*v*abs(v)*A*C_D)/(m_s+m_p)])
+    
+def fn(u):
+    """Returns the right-hand side of the system of equations with no propellant.
+    
+    Parameters
+    ----------
+    u : array of float
+        array containing the solution at time n.
+        
+    Returns
+    -------
+    dudt : array of float
+        array containing the RHS given u.
+    """    
+    
+    h = u[0]
+    v = u[1]
+    return numpy.array([v, (-(m_s)*g-0.5*rho*v*abs(v)*A*C_D)/(m_s)])
 
-def euler_step(u, f, dt, t):
-    """Returns the solution at the next time-step using Euler's method.
+def euler_step_WithMPDot(u, f, dt, t):
+    """Returns the solution at the next time-step using Euler's method
+       with nonzero propellant.
+    
+    Parameters
+    ----------
+    u : array of float
+        solution at the previous time-step.
+    f : function
+        function to compute the right hand-side of the system of equation.
+    dt : float
+        time-increment.
+    t : time value in seconds, float
+    
+    Returns
+    -------
+    u_n_plus_1 : array of float
+        approximate solution at the next time step.
+    """
+    
+    return u + dt * f(u,t)
+    
+def euler_step_NoMPDot(u, fn, dt):
+    """Returns the solution at the next time-step using Euler's method
+       with zero propellant.
     
     Parameters
     ----------
@@ -62,9 +100,9 @@ def euler_step(u, f, dt, t):
         approximate solution at the next time step.
     """
     
-    return u + dt * f(u,t)
+    return u + dt * fn(u)
 
-T = 100.0                          # Max time allowed
+T = 50.0                          # Max time allowed
 dt = 0.1                           # time increment
 N = int(T/dt) + 1                  # number of time-steps
 t = numpy.linspace(0.0, T, N)      # time discretization
@@ -75,8 +113,10 @@ u[0] = numpy.array([h_0,v_0])# fill 1st element with initial values
 
 # time loop - Euler method
 for n in range(N-1):
-    
-    u[n+1] = euler_step(u[n], f, dt, t[n])
+    if t[n] >= 5.0:
+        u[n+1] = euler_step_NoMPDot(u[n], fn, dt)
+    elif t[n] < 5.0:
+        u[n+1] = euler_step_WithMPDot(u[n], f, dt, t[n])
 
 count = 0
 for n in range(N-1):
