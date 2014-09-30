@@ -15,11 +15,11 @@ sigma = 0.75
 u = numpy.ones(nx)      
 u[.5/dx : 1/dx+1]=2
 dt = sigma*dx/max(u)
-nt = linspace(0.,T,T/dt)
+nt = int(ceil(T/dt))
 
 x = numpy.linspace(0,2,nx)
 
-for n in range(1, size(nt)):  
+for n in range(1, nt):  
     un = u.copy() 
     u[1:] = un[1:]-un[1:]*dt/dx*(un[1:]-un[0:-1]) 
     u[0] = 1.0
