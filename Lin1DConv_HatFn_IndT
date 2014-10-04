@@ -1,0 +1,42 @@
+import numpy                       
+import matplotlib.pyplot as plt                 
+%matplotlib inline
+from matplotlib import rcParams
+rcParams['font.family'] = 'serif'
+rcParams['font.size'] = 16
+
+nx = 201
+dx = 2./(nx-1)
+T = 0.5
+sigma = 0.99 
+c = 1.      # assume wavespeed of c = 1
+dt = 2.*sigma*dx/c   # finding a dt satisfying CFL condition for central difference Euler approximation
+nt = int(ceil(T/dt))
+
+## Constructing Initial Condition
+
+LHS = linspace(0.9,1.0,ceil((1.0-0.9)/dx))
+LHS = 10.*(LHS-0.9)
+
+if nx%2 == 0:
+    RHS = linspace(1.0,1.1,ceil((1.1-1.0)/dx))
+else:
+    RHS = linspace(1.0,1.1,ceil((1.1-(1.0+dx))/dx))
+
+RHS = 10.*(1.1-RHS)
+RHS = RHS[1:]
+
+u = numpy.zeros(nx)
+u[.9/dx+1 : 1./dx+1]=LHS     #setting u = step function between 0.9 and 1.1 as per our I.C.s
+u[1./dx+1 : 1.1/dx]=RHS
+
+plt.plot(numpy.linspace(0,2,nx), u, color='#003366', ls='--', lw=2)
+plt.ylim(0,1.2);
+
+for n in range(1, nt):  
+    un = u.copy() 
+    u[2:] = un[2:]-c/2.*dt/dx*(un[2:]-un[0:-2]) 
+    u[0] = 0.; u[1] = 0.; u[-1] = 0.; u[-2] = 0
+
+plt.plot(numpy.linspace(0,2,nx), u, color='#003366', ls='--', lw=2)
+plt.ylim(0,1.2);
