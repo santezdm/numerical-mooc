@@ -1,0 +1,67 @@
+import numpy                       
+import matplotlib.pyplot as plt                 
+%matplotlib inline
+from matplotlib import rcParams
+rcParams['font.family'] = 'serif'
+rcParams['font.size'] = 16
+
+# initial conditions and parameters
+v_max = 80.     # km/h
+L = 11.         # km
+rho_max = 250.  # cars/km
+nx = 51
+del_t = 0.001  # hours (3.6 seconds)
+
+sigma = 0.99
+del_x = v_max*del_t/sigma  # satisfying the CFL condition
+
+#T = 0.        # hours (0 minutes)
+T = 0.05      # hours (3 minutes)
+#T = 0.1       # hours (6 minutes)
+nt = int(ceil(T/del_t))
+
+# given initial conditions (continued)
+
+x = numpy.linspace(0,L,nx)
+rho = numpy.ones(nx)*10
+rho[10:20] = 50
+
+plt.plot(numpy.linspace(0,11,nx), rho, color='#003366', ls='--', lw=3)
+plt.ylim(0,52);
+
+for n in range(1, nt):  
+    rho_n = rho.copy() 
+    rho[1:] = rho_n[1:]-v_max*(1-rho_n[1:]/rho_max)*del_t/del_x*(rho_n[1:]-rho_n[0:-1]) 
+    rho[0] = 10.
+
+plt.plot(numpy.linspace(0,11,nx), rho, color='#003366', ls='--', lw=3)
+plt.ylim(0,52);
+
+def mini_v(maxRho,maxV,maxRho_atTimeT):
+    # Solves the traffic flow equation v = maxV*(1-maxRho_atTimeT/maxRho)
+    
+    # Parameters
+    # ----------
+    
+    # maxRho: maximum (bumper to bumper)
+    #        number of cars per unit length of highway
+           
+    # maxV:   fastest velocity cars will travel
+    #        on highway (when the car density is zero)
+    
+    # maxRho_atTimeT:  the largest density of cars on
+    #                 the highway after a time T
+    
+    # Returns
+    # -------
+    
+    # minV:  the minimum velocity of cars on the highway in m/s
+        
+        
+    minV = maxV*(1-maxRho_atTimeT/maxRho)*1000./3600.
+    
+    return minV
+
+print('Minimum Velocity = {:.2f} m/s'.format(mini_v(rho_max,v_max,max(rho))))
+
+v_max*(1-numpy.average(rho)/rho_max)*1000./3600.
