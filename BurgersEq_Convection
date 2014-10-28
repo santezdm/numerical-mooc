@@ -29,12 +29,10 @@ def maccormack(u, nt, dt, dx, eps):
         F = computeF(u)
         
         ustar[1:-1] = u[1:-1]-dt/dx*(F[2:]-F[1:-1])+eps*(u[2:]-2.*u[1:-1]+u[:-2])
-        ustar[0] = u[0]-dt/dx*(F[1]-F[0])+eps*(u[1]-2.*u[0]+u[-1])
-        ustar[-1] = u[-1]-dt/dx*(F[0]-F[-1])+eps*(u[0]-2.*u[-1]+u[-2])
         
         Fstar = computeF(ustar)
         
-        un[i,1:-1] = 0.5*(u[1:-1]+ustar[1:-1]-dt/dx*(Fstar[1:-1]-Fstar[:-2]))
+        un[i,1:] = 0.5*(u[1:]+ustar[1:]-dt/dx*(Fstar[1:]-Fstar[:-1]))
         
         u = un[i].copy()
         
@@ -48,7 +46,7 @@ def animate(data):
 
 sigma = 1
 dt = sigma*dx
-eps = 0.02*dt/dx**2
+eps = 0.5
 
 un = maccormack(u,nt,dt,dx,eps)
 
