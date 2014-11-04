@@ -1,0 +1,119 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+## Creating Spatial and Temporal Parameters
+
+cutoff = 2.5 #multiple of dx!
+
+nx = 81
+dx = 0.25
+dt = 0.0002
+
+T = 0.01
+nt = int(T/dt)
+
+## Setting Initial Conditions
+
+gamma = 1.4
+
+rhoL = 1.
+uL = 0.
+pL = 100.*10**3
+eTL = pL/((gamma-1)*rhoL)+0.5*uL**2
+
+rhoR = 0.125
+uR = 0.
+pR = 10.*10**3
+eTR = pR/((gamma-1)*rhoR)+0.5*uR**2
+
+## Create U-vector functions, given initial gas and spatial conditions
+
+def createU(rho,u,eT):
+    u_vec = [rho, rho*u, rho*eT]
+    return u_vec
+
+def u_init(nx,dx,uL_vec,uR_vec):
+    u1 = np.zeros(nx)
+    u2 = u1.copy()
+    u3 = u1.copy()
+    u1[0:10./dx+1] = uL_vec[0]; u1[10./dx:] = uR_vec[0]
+    u2[0:10./dx+1] = uL_vec[1]; u2[10./dx:] = uR_vec[1]
+    u3[0:10./dx+1] = uL_vec[2]; u3[10./dx:] = uR_vec[2]
+    
+    u_initial = [u1, u2, u3]
+    u_initial = np.asarray(u_initial)
+    return u_initial
+
+## Defining Flux Function
+def createF(u_vec,gamma,nx):
+    f = np.zeros((len(u_initial),nx), dtype=float)
+    for i in range(nx):
+        f[0,i] = u_vec[1,i]
+        f[1,i] = u_vec[1,i]**2/u_vec[0,i]+(gamma-1)*(u_vec[2,i]-0.5*u_vec[1,i]**2/u_vec[0,i])
+        f[2,i] = (u_vec[2,i]+(gamma-1)*(u_vec[2,i]-0.5*u_vec[1,i]**2/u_vec[0,i]))*u_vec[1,i]/u_vec[0,i]
+    return f
+
+## Constructing Initial U-Vector
+uL_vec = createU(rhoL,uL,eTL)
+uR_vec = createU(rhoR,uR,eTR)
+u_initial = u_init(nx,dx,uL_vec,uR_vec)
+
+plt.plot(np.linspace(-10,10,nx),u_initial[0,:]); plt.ylim(-1,2);
+xlabel('x in (m)'); ylabel('u_vector(1) = density'); title('Initial state of u_vector(1)')
+plt.show()
+plt.plot(np.linspace(-10,10,nx),u_initial[1,:]); plt.ylim(-1,1);
+xlabel('x in (m)'); ylabel('u_vector(2) = density*vel'); title('Initial state of u_vector(2)')
+plt.show()
+plt.plot(np.linspace(-10,10,nx),u_initial[2,:]); plt.ylim(1000,275000);
+xlabel('x in (m)'); ylabel('u_vector(3) = density*e_T'); title('Initial state of u_vector(3)')
+plt.show()
+
+## Creating Richtmyer Scheme to Analyze Tube Under Initial Conditions
+
+def richtmyer(u,nt,nx,dt,dx,gamma):
+    ustar = u.copy()
+    
+    for i in range(nt):
+        un = u.copy()
+        
+        f = createF(u,gamma,nx)
+            
+        ustar[:,:-1] = 0.5*(un[:,1:]+un[:,:-1])-(dt/(2*dx))*(f[:,1:]-f[:,:-1])
+            
+        fstar = createF(ustar,gamma,nx)
+            
+        u[:,1:] = un[:,1:]-(dt/dx)*(fstar[:,1:]-fstar[:,:-1])
+        
+    return u
+
+## Running Simulation
+
+u = richtmyer(u_initial,nt,nx,dt,dx,gamma)
+
+plt.plot(np.linspace(-10,10,nx),u[0,:],'r.-'); plt.ylim(0,1);
+xlabel('x in (m)'); ylabel('Density (kg/m^3'); title('Densities in Tube after T = 0.01 s')
+plt.show()
+finalV = u[1,:]/u[0,:]
+plt.plot(np.linspace(-10,10,nx),finalV,'r.-'); plt.ylim(0,500);
+xlabel('x in (m)'); ylabel('Velocity (m/s)'); title('Velocities in Tube after T = 0.01 s')
+plt.show()
+finalP = (gamma-1)*(u[2,:]-0.5*u[1,:]**2/u[0,:])
+plt.plot(np.linspace(-10,10,nx),finalP, 'r.-'); plt.ylim(10000,100000);
+xlabel('x in (m)'); ylabel('Pressure (N/m^2)'); title('Pressures in Tube after T = 0.01 s')
+plt.show()
+
+## Results of Simulation at x = 2.5 m
+
+x = -10
+ind = 0
+while x != cutoff:
+    x = x+dx
+    ind = ind+1
+
+RhoAtX = u[0,ind]
+VelAtX = finalV[ind]
+PrsAtX = finalP[ind]
+
+print('Density @POI = {:.2f} kg/m^3'.format(RhoAtX))
+print('Velocity @POI = {:.2f} m/s'.format(VelAtX))
+print('Pressure @POI = {:.2f} N/m^2'.format(PrsAtX))
